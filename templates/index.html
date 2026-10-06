@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Automated Attendance Marker</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f0f4f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    img {
+      display: block;
+      margin: 20px auto 10px;
+      max-width: 120px;
+      height: auto;
+      border: none;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .org-name {
+      font-size: 20px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    h1 {
+      background-color: #007BFF;
+      color: white;
+      padding: 20px;
+      margin: 0;
+      width: 100%;
+      text-align: center;
+      border-radius: 0 0 25px 25px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    video {
+      width: 90%;
+      max-width: 640px;
+      margin: 20px 0;
+      border-radius: 16px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    button {
+      background-color: #28a745;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 24px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px 0;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #218838;
+    }
+
+    button:disabled {
+      background-color: #6c757d;
+      cursor: not-allowed;
+    }
+
+    #result {
+      font-size: 18px;
+      margin-top: 15px;
+      color: #333;
+      text-align: center;
+    }
+
+    #canvas {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 20px;
+        padding: 15px;
+      }
+
+      button {
+        width: 90%;
+        font-size: 14px;
+      }
+
+      .org-name {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Title -->
+  <h1>AUTOMATED ATTENDANCE MARKER</h1>
+  <div class="org-name">CMR INSTITUTE OF TECHNOLOGY HYDERABAD</div>
+
+  <!-- Video -->
+  <video id="video" autoplay playsinline></video>
+
+  <!-- Capture Button -->
+  <button id="detectBtn" onclick="captureAndSend()">📸 Detect Face</button>
+
+  <!-- Hidden Canvas -->
+  <canvas id="canvas"></canvas>
+
+  <!-- Result -->
+  <p id="result"></p>
+
+  <script>
+    const video = document.getElementById('video');
+    const resultEl = document.getElementById('result');
+    const canvas = document.getElementById('canvas');
+    const detectBtn = document.getElementById('detectBtn');
+
+    // Start camera
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => video.srcObject = stream)
+      .catch(err => {
+        console.error("Error accessing camera:", err);
+        resultEl.innerText = "🚫 No camera found or permission denied.";
+        detectBtn.disabled = true;
+      });
+
+    async function captureAndSend() {
+      detectBtn.disabled = true;
+      resultEl.innerText = "⏳ Detecting face...";
+
+      const ctx = canvas.getContext('2d');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageData = canvas.toDataURL('image/jpeg');
+
+      try {
+        const response = await fetch('/detect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: imageData })
+        });
+
+        const data = await response.json();
+
+        if (data.status === "recognized") {
+          resultEl.innerText = `✅ Recognized: ${data.name}`;
+        } else if (data.status === "unknown") {
+          resultEl.innerText = "❌ Unknown Face";
+        } else {
+          resultEl.innerText = "⚠️ No Face Detected";
+        }
+      } catch (err) {
+        console.error("Error sending image:", err);
+        resultEl.innerText = "❌ Failed to send image to server.";
+      } finally {
+        detectBtn.disabled = false;
+      }
+    }
+  </script>
+
+</body>
+</html>
