@@ -16,7 +16,7 @@ Outputs face identity results and records for subsequent use
 
 🚀 Installation
 1. Clone the Repository
-git clone https://github.com/Rajeevkothapally/FACE-RECOGNITION.git
+git clone https://github.com/barathwajmaduri/Automated-Attendance-Marker.git
 cd FACE-RECOGNITION
 
 2. Create Python Virtual Environment (optional but recommended)
@@ -84,11 +84,5 @@ Note: Ensure all paths and camera indices are updated properly based on your sys
 
 You can drag and drop screenshots into this README by using GitHub’s web editor.
 
-📜 License
 
-This project is licensed under the GPL-3.0 License — see the LICENSE
- file for details.
 
-📝 Contributions
-
-Contributions, issues, and feature requests are welcome! Feel free to open pull requests.
